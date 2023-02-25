@@ -7,9 +7,21 @@ endif()
 
 # find dependencies
 find_package(ament_cmake REQUIRED)
-# uncomment the following section in order to fill in
-# further dependencies manually.
-# find_package(<dependency> REQUIRED)
+find_package(rclcpp REQUIRED)
+
+include_directories(include)
+
+## Declare cpp executables
+add_executable(${PROJECT_NAME}
+  src/${PROJECT_NAME}_node.cpp
+  src/PC2Combiner.cpp
+)
+ament_target_dependencies(${PROJECT_NAME} rclcpp)
+
+install(
+  TARGETS ${PROJECT_NAME} 
+  DESTINATION lib/${PROJECT_NAME}
+)
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)

@@ -17,4 +17,6 @@
   </export>
 
   <exec_depend>ros2launch</exec_depend>
+  <depend>rclcpp</depend>
+
 </package>
