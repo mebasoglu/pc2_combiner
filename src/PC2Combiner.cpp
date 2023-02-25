@@ -3,16 +3,17 @@
 namespace pc2_combiner
 {
 PC2Combiner::PC2Combiner()
-  : Node{ "pc2_combiner" }, m_tf_buffer{ get_clock() }, m_tf_listener{ m_tf_buffer }
+  : Node{ "pc2_combiner" }
+  , m_tf_buffer{ get_clock() }
+  , m_tf_listener{ m_tf_buffer }
+  , m_left_sub{ this, "/sensing/lidar/left/pointcloud_raw", rmw_qos_profile_sensor_data }
+  , m_right_sub{ this, "/sensing/lidar/right/pointcloud_raw", rmw_qos_profile_sensor_data }
+  , m_top_sub{ this, "/sensing/lidar/top/pointcloud_raw", rmw_qos_profile_sensor_data }
+  , m_synchronizer{ policy_t(5), m_left_sub, m_right_sub, m_top_sub }
 {
     RCLCPP_INFO(get_logger(), "Starting %s node.", get_name());
-
     getTransform();
-
-    subscription_ = this->create_subscription<sensor_msgs::msg::PointCloud2>(
-        "/sensing/lidar/left/pointcloud_raw", rclcpp::SensorDataQoS(),
-        std::bind(&PC2Combiner::topic_callback, this, std::placeholders::_1));
-
+    m_synchronizer.registerCallback(&PC2Combiner::cloudCallback, this);
     RCLCPP_INFO(get_logger(), "Initialized %s node.", get_name());
 }
 
@@ -51,11 +52,14 @@ bool PC2Combiner::isTransformAvailable() const
     return tf_left && tf_right && tf_top;
 }
 
-void PC2Combiner::topic_callback(const sensor_msgs::msg::PointCloud2& msg) const
+void PC2Combiner::cloudCallback(const sensor_msgs::msg::PointCloud2& t_left_msg,
+                                const sensor_msgs::msg::PointCloud2& t_right_msg,
+                                const sensor_msgs::msg::PointCloud2& t_top_msg)
 {
-    RCLCPP_INFO(this->get_logger(), "I heard: '%s'", msg.header.frame_id.c_str());
-    RCLCPP_INFO(get_logger(), "%f", m_tf_left.transform.translation.z);
-    RCLCPP_INFO(get_logger(), "%f", m_tf_right.transform.translation.z);
-    RCLCPP_INFO(get_logger(), "%f", m_tf_top.transform.translation.z);
+    RCLCPP_INFO(get_logger(), "yes");
+    RCLCPP_INFO(get_logger(), "%d", t_left_msg.header.stamp.sec);
+    RCLCPP_INFO(get_logger(), "%d", t_right_msg.header.stamp.sec);
+    RCLCPP_INFO(get_logger(), "%d", t_top_msg.header.stamp.sec);
 }
+
 }  // namespace pc2_combiner
