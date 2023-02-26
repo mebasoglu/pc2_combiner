@@ -8,6 +8,7 @@
 #include "message_filters/subscriber.h"
 #include "message_filters/synchronizer.h"
 #include "message_filters/sync_policies/approximate_time.h"
+#include "pc2_combiner/PointCloudType.hpp"
 
 namespace pc2_combiner
 {

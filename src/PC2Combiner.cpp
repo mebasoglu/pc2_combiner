@@ -60,6 +60,29 @@ void PC2Combiner::cloudCallback(const sensor_msgs::msg::PointCloud2& t_left_msg,
     RCLCPP_INFO(get_logger(), "%d", t_left_msg.header.stamp.sec);
     RCLCPP_INFO(get_logger(), "%d", t_right_msg.header.stamp.sec);
     RCLCPP_INFO(get_logger(), "%d", t_top_msg.header.stamp.sec);
+
+    // Create empty PC2
+    sensor_msgs::msg::PointCloud2 combined_cloud;
+
+    // Find the max point count to set the empty cloud.
+    std::array<unsigned int, 3> point_counts;
+    point_counts[0] = t_left_msg.height * t_left_msg.width;
+    point_counts[1] = t_right_msg.height * t_right_msg.width;
+    point_counts[2] = t_top_msg.height * t_top_msg.width;
+    const auto point_count = *std::max_element(point_counts.begin(), point_counts.end());
+
+    sensor_msgs::PointCloud2Modifier combined_modifier{ combined_cloud };
+    combined_modifier.resize(point_count);
+    combined_modifier.setPointCloud2Fields(5, "x", 1, sensor_msgs::msg::PointField::FLOAT32, "y", 1,
+                                           sensor_msgs::msg::PointField::FLOAT32, "z", 1,
+                                           sensor_msgs::msg::PointField::FLOAT32, "intensity", 1,
+                                           sensor_msgs::msg::PointField::FLOAT32, "ring", 1,
+                                           sensor_msgs::msg::PointField::UINT16);
+
+    PointCloudIterator iterator{ t_left_msg, t_right_msg, t_top_msg, combined_cloud, point_counts };
+    iterator.iterateClouds();
+
+    // Publish combined cloud.
 }
 
 }  // namespace pc2_combiner
