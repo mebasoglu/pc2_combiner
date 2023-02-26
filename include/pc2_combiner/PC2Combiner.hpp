@@ -1,5 +1,6 @@
 #pragma once
 
+#include <memory>
 #include "rclcpp/rclcpp.hpp"
 #include "tf2_ros/transform_listener.h"
 #include "tf2_ros/buffer.h"
@@ -73,5 +74,8 @@ class PC2Combiner : public rclcpp::Node
 
     // Message filter synchronizer.
     message_filters::Synchronizer<policy_t> m_synchronizer;
+
+    // Publisher for combined cloud.
+    std::shared_ptr<rclcpp::Publisher<sensor_msgs::msg::PointCloud2>> m_publisher;
 };
 }  // namespace pc2_combiner
