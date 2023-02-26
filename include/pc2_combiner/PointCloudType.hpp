@@ -16,131 +16,84 @@ struct Point
     unsigned short ring;
 };
 
-class PointCloudIterator
+/**
+ * @brief This class takes the reference of an existing const PointCloud2 message and enables
+ * iterating its points.
+ *
+ */
+class PointCloud
 {
   public:
-    PointCloudIterator(const sensor_msgs::msg::PointCloud2& t_cloud_left,
-                       const sensor_msgs::msg::PointCloud2& t_cloud_right,
-                       const sensor_msgs::msg::PointCloud2& t_cloud_top,
-                       sensor_msgs::msg::PointCloud2& t_cloud_combined,
-                       std::array<unsigned int, 3> t_point_counts)
-      : m_cloud_left{ t_cloud_left }
-      , m_cloud_right{ t_cloud_right }
-      , m_cloud_top{ t_cloud_top }
-      , m_cloud_combined{ t_cloud_combined }
-      , m_cloud_left_x{ m_cloud_left, "x" }
-      , m_cloud_left_y{ m_cloud_left, "y" }
-      , m_cloud_left_z{ m_cloud_left, "z" }
-      , m_cloud_left_intensity{ m_cloud_left, "intensity" }
-      , m_cloud_left_ring{ m_cloud_left, "ring" }
-
-      , m_cloud_right_x{ m_cloud_right, "x" }
-      , m_cloud_right_y{ m_cloud_right, "y" }
-      , m_cloud_right_z{ m_cloud_right, "z" }
-      , m_cloud_right_intensity{ m_cloud_right, "intensity" }
-      , m_cloud_right_ring{ m_cloud_right, "ring" }
-
-      , m_cloud_top_x{ m_cloud_top, "x" }
-      , m_cloud_top_y{ m_cloud_top, "y" }
-      , m_cloud_top_z{ m_cloud_top, "z" }
-      , m_cloud_top_intensity{ m_cloud_top, "intensity" }
-      , m_cloud_top_ring{ m_cloud_top, "ring" }
-
-      , m_cloud_combined_x{ m_cloud_combined, "x" }
-      , m_cloud_combined_y{ m_cloud_combined, "y" }
-      , m_cloud_combined_z{ m_cloud_combined, "z" }
-      , m_cloud_combined_intensity{ m_cloud_combined, "intensity" }
-      , m_cloud_combined_ring{ m_cloud_combined, "ring" }
-
+    /**
+     * @brief Constructs a new PointCloud object with the reference of an existing PointCloud2 msg.
+     *
+     * @param t_pointcloud2 The PointCloud2 message.
+     */
+    PointCloud(const sensor_msgs::msg::PointCloud2& t_pointcloud2)
+      : m_pointcloud2{ t_pointcloud2 }
+      , m_point_count{ m_pointcloud2.height * m_pointcloud2.width }
       , m_current_index{ 0 }
-      , m_point_counts{ t_point_counts }
+      , m_iter_x{ m_pointcloud2, "x" }
+      , m_iter_y{ m_pointcloud2, "y" }
+      , m_iter_z{ m_pointcloud2, "z" }
+      , m_iter_intensity{ m_pointcloud2, "intensity" }
+      , m_iter_ring{ m_pointcloud2, "ring" }
     {
-        m_point_count = *std::max_element(m_point_counts.begin(), m_point_counts.end());
     }
 
-    void iterateClouds()
+    /**
+     * @brief Get the point count of the cloud.
+     *
+     * @return Point count.
+     */
+    unsigned int getPointCount() const
     {
-        while (m_current_index < m_point_count)
+        return m_point_count;
+    }
+
+    /**
+     * @brief Get the current point of the cloud.
+     *
+     * @return Current point.
+     */
+    Point getCurrentPoint() const
+    {
+        const Point point{ *m_iter_x, *m_iter_y, *m_iter_z, *m_iter_intensity, *m_iter_ring };
+        return point;
+    }
+
+    /**
+     * @brief Increases iterators by 1.
+     *
+     */
+    void nextPoint()
+    {
+        if (m_current_index < m_point_count)
         {
-            // Transform points
-            std::cout << "Left ring: " << *m_cloud_left_ring << '\n';
-
-            // Append transformed points to combined cloud.
-
-            // Go to next point.
-            nextPoint();
+            ++m_iter_x;
+            ++m_iter_y;
+            ++m_iter_z;
+            ++m_iter_intensity;
+            ++m_iter_ring;
         }
     }
 
   private:
-    void nextPoint()
-    {
-        if (m_current_index < m_point_counts[0])
-        {
-            ++m_cloud_left_x;
-            ++m_cloud_left_y;
-            ++m_cloud_left_z;
-            ++m_cloud_left_intensity;
-            ++m_cloud_left_ring;
-        }
+    // Reference of the existing PointCloud2.
+    const sensor_msgs::msg::PointCloud2& m_pointcloud2;
 
-        if (m_current_index < m_point_counts[1])
-        {
-            ++m_cloud_right_x;
-            ++m_cloud_right_y;
-            ++m_cloud_right_z;
-            ++m_cloud_right_intensity;
-            ++m_cloud_right_ring;
-        }
+    // Number of the points in the cloud.
+    const unsigned int m_point_count;
 
-        if (m_current_index < m_point_counts[2])
-        {
-            ++m_cloud_top_x;
-            ++m_cloud_top_y;
-            ++m_cloud_top_z;
-            ++m_cloud_top_intensity;
-            ++m_cloud_top_ring;
-        }
-
-        ++m_cloud_combined_x;
-        ++m_cloud_combined_y;
-        ++m_cloud_combined_z;
-        ++m_cloud_combined_intensity;
-        ++m_cloud_combined_ring;
-    }
-
-    const sensor_msgs::msg::PointCloud2& m_cloud_left;
-    const sensor_msgs::msg::PointCloud2& m_cloud_right;
-    const sensor_msgs::msg::PointCloud2& m_cloud_top;
-    sensor_msgs::msg::PointCloud2& m_cloud_combined;
-
-    sensor_msgs::PointCloud2ConstIterator<float> m_cloud_left_x;
-    sensor_msgs::PointCloud2ConstIterator<float> m_cloud_left_y;
-    sensor_msgs::PointCloud2ConstIterator<float> m_cloud_left_z;
-    sensor_msgs::PointCloud2ConstIterator<float> m_cloud_left_intensity;
-    sensor_msgs::PointCloud2ConstIterator<float> m_cloud_left_ring;
-
-    sensor_msgs::PointCloud2ConstIterator<float> m_cloud_right_x;
-    sensor_msgs::PointCloud2ConstIterator<float> m_cloud_right_y;
-    sensor_msgs::PointCloud2ConstIterator<float> m_cloud_right_z;
-    sensor_msgs::PointCloud2ConstIterator<float> m_cloud_right_intensity;
-    sensor_msgs::PointCloud2ConstIterator<float> m_cloud_right_ring;
-
-    sensor_msgs::PointCloud2ConstIterator<float> m_cloud_top_x;
-    sensor_msgs::PointCloud2ConstIterator<float> m_cloud_top_y;
-    sensor_msgs::PointCloud2ConstIterator<float> m_cloud_top_z;
-    sensor_msgs::PointCloud2ConstIterator<float> m_cloud_top_intensity;
-    sensor_msgs::PointCloud2ConstIterator<float> m_cloud_top_ring;
-
-    sensor_msgs::PointCloud2Iterator<float> m_cloud_combined_x;
-    sensor_msgs::PointCloud2Iterator<float> m_cloud_combined_y;
-    sensor_msgs::PointCloud2Iterator<float> m_cloud_combined_z;
-    sensor_msgs::PointCloud2Iterator<float> m_cloud_combined_intensity;
-    sensor_msgs::PointCloud2Iterator<float> m_cloud_combined_ring;
-
-    unsigned int m_point_count;
+    // Index of the current point.
     size_t m_current_index;
-    std::array<unsigned int, 3>& m_point_counts;
+
+    // PointCloud2 iterators.
+    sensor_msgs::PointCloud2ConstIterator<float> m_iter_x;
+    sensor_msgs::PointCloud2ConstIterator<float> m_iter_y;
+    sensor_msgs::PointCloud2ConstIterator<float> m_iter_z;
+    sensor_msgs::PointCloud2ConstIterator<float> m_iter_intensity;
+    sensor_msgs::PointCloud2ConstIterator<unsigned short> m_iter_ring;
 };
 
 }  // namespace pc2_combiner
