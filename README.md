@@ -1,6 +1,6 @@
 # pc2_combiner
 ---
-This is a ROS 2 package to transform and combine multiple PointCloud2 messages into a single one. Points are transformed and combined with all their fileds, not just x, y and. Therefore the produced point cloud contains intensity and ring fileds, so we get a colorful cloud on RViz. The launch file `combine.py` publishes a transform for each PointCloud2 topic.
+This is a ROS 2 package to transform and combine multiple PointCloud2 messages into a single one. Points are transformed and combined with all their fileds, not just x, y and z. Therefore the produced point cloud contains intensity and ring fileds, so we get a colorful cloud on RViz. The launch file `combine.py` publishes a transform for each PointCloud2 topic.
 
 Here is the tf tree on RViz:
 
