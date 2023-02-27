@@ -22,5 +22,8 @@ def generate_launch_description():
             arguments=['--x', '0.0', '--y', '0.0', '--z', '0.0', '--yaw', '1.575', '--pitch', '0.0',
                        '--roll', '0.0', '--frame-id', 'base_link', '--child-frame-id', 'velodyne_top']
         ),
-
+        Node(
+            package='pc2_combiner',
+            executable='pc2_combiner'
+        ),
     ])

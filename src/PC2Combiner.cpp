@@ -20,7 +20,8 @@ PC2Combiner::PC2Combiner()
     m_synchronizer.registerCallback(&PC2Combiner::cloudCallback, this);
 
     // Create publisher for combined PointCloud.
-    m_publisher = create_publisher<sensor_msgs::msg::PointCloud2>("asd", rclcpp::SensorDataQoS());
+    m_publisher =
+        create_publisher<sensor_msgs::msg::PointCloud2>("/sensing/lidar/concatenated_point_cloud", rclcpp::SensorDataQoS());
 
     RCLCPP_INFO(get_logger(), "Initialized %s node.", get_name());
 }
@@ -71,7 +72,6 @@ void PC2Combiner::cloudCallback(const sensor_msgs::msg::PointCloud2& t_left_msg,
     PointCloudConst left_cloud{ t_left_msg };
     PointCloudConst right_cloud{ t_right_msg };
     PointCloudConst top_cloud{ t_top_msg };
-    // RCLCPP_INFO(get_logger(), "Created clouds.");
 
     // Get the point counts to find max and sum of them.
     std::array<unsigned int, 3> point_counts;
@@ -82,11 +82,9 @@ void PC2Combiner::cloudCallback(const sensor_msgs::msg::PointCloud2& t_left_msg,
     unsigned int sum{ 0 };
     for (const auto& count : point_counts)
         sum += count;
-    // RCLCPP_INFO(get_logger(), "Calculated max and sum.");
 
     // Set the size of the combined cloud to sum.
     combined_cloud.setFieldsAndResize(sum);
-    // RCLCPP_INFO(get_logger(), "Configured combined cloud.");
 
     // Iterate through point clouds, transform points and append them to combined cloud.
     for (size_t i = 0; i < max_count; ++i)
@@ -96,9 +94,7 @@ void PC2Combiner::cloudCallback(const sensor_msgs::msg::PointCloud2& t_left_msg,
             // Transform and append the point from the left cloud.
             Point left_point{ left_cloud.getCurrentPoint() };
             left_point.transform(m_tf_left);
-            // RCLCPP_INFO(get_logger(), "Transformed left point.");
             combined_cloud.append(left_point);
-            // RCLCPP_INFO(get_logger(), "Appended left point.");
         }
 
         if (right_cloud.getCurrentIndex() < right_cloud.getPointCount())
@@ -106,9 +102,7 @@ void PC2Combiner::cloudCallback(const sensor_msgs::msg::PointCloud2& t_left_msg,
             // Transform and append the point from the right cloud.
             Point right_point{ right_cloud.getCurrentPoint() };
             right_point.transform(m_tf_right);
-            // RCLCPP_INFO(get_logger(), "Transformed right point.");
             combined_cloud.append(right_point);
-            // RCLCPP_INFO(get_logger(), "Appended right point.");
         }
 
         if (top_cloud.getCurrentIndex() < top_cloud.getPointCount())
@@ -116,15 +110,12 @@ void PC2Combiner::cloudCallback(const sensor_msgs::msg::PointCloud2& t_left_msg,
             // Transform and append the point from the top cloud.
             Point top_point{ top_cloud.getCurrentPoint() };
             top_point.transform(m_tf_top);
-            // RCLCPP_INFO(get_logger(), "Transformed top point.");
             combined_cloud.append(top_point);
-            // RCLCPP_INFO(get_logger(), "Appended top point.");
         }
 
         left_cloud.nextPoint();
         right_cloud.nextPoint();
         top_cloud.nextPoint();
-        // RCLCPP_INFO(get_logger(), "Went next.");
     }
 
     // Publish combined cloud.
